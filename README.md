@@ -247,5 +247,5 @@ MIT License - see LICENSE file for details
 ## 🆘 Support
 
 - Create GitHub issue
-- Email: support@example.com
-- Documentation: https://docs.example.com
+
+- Documentation: [Raspberry GPIO Controller](https://woodmurderedhat.github.io/raspberry-gpio-controller/)
