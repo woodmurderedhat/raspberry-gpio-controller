@@ -869,18 +869,7 @@ POST /api/pins/12/pwm
                             <li>CPU Usage: Real-time processor load</li>
                             <li>Memory: RAM usage and availability</li>
                             <li>Voltage: Power supply readings</li>
-                        </ul>
-                    </li>
-                    <li><strong>Configure Alerts:</strong>
-                        <ul>
-                            <li>Click "Alert Settings"</li>
-                            <li>Set thresholds for:
-                                <ul>
-                                    <li>Temperature warnings</li>
-                                    <li>CPU load alerts</li>
-                                    <li>Memory usage warnings</li>
-                                </ul>
-                            </li>
+                            <li>Clock speeds and throttling status</li>
                         </ul>
                     </li>
                 </ol>
@@ -890,48 +879,15 @@ POST /api/pins/12/pwm
                 <h4>Viewing Logs</h4>
                 <ol>
                     <li>Click "Logs" in the main menu</li>
-                    <li>Filter logs by:
+                    <li>View logs filtered by:
                         <ul>
-                            <li>Time period</li>
                             <li>User</li>
                             <li>Action type</li>
                             <li>Pin number</li>
-                        </ul>
-                    </li>
-                    <li>Export logs:
-                        <ul>
-                            <li>Click "Export"</li>
-                            <li>Choose date range</li>
-                            <li>Select CSV or JSON format</li>
+                            <li>Timestamp</li>
                         </ul>
                     </li>
                 </ol>
-            </div>
-
-            <div class="feature-card">
-                <h4>Keyboard Shortcuts</h4>
-                <table>
-                    <tr>
-                        <th>Shortcut</th>
-                        <th>Action</th>
-                    </tr>
-                    <tr>
-                        <td><code>Ctrl + S</code></td>
-                        <td>Save current preset</td>
-                    </tr>
-                    <tr>
-                        <td><code>Ctrl + L</code></td>
-                        <td>Load preset</td>
-                    </tr>
-                    <tr>
-                        <td><code>Ctrl + M</code></td>
-                        <td>Toggle monitoring panel</td>
-                    </tr>
-                    <tr>
-                        <td><code>Ctrl + /</code></td>
-                        <td>Show keyboard shortcuts</td>
-                    </tr>
-                </table>
             </div>
 
             <div class="warning">
@@ -940,7 +896,7 @@ POST /api/pins/12/pwm
                     <li>Always verify pin configurations before applying power to connected devices</li>
                     <li>Some features require admin privileges</li>
                     <li>Pin states are preserved across sessions</li>
-                    <li>System automatically logs out after 30 minutes of inactivity</li>
+                    <li>System automatically logs out when JWT token expires</li>
                 </ul>
             </div>
         </section>
