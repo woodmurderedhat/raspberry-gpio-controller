@@ -1,77 +1,251 @@
-# Raspberry Pi GPIO Controller
+# Raspberry Pi GPIO Controller Pro
 
-A web-based application to control and monitor GPIO pins on your Raspberry Pi 5.
+A professional-grade web application for controlling and monitoring Raspberry Pi GPIO pins with enterprise features.
 
-## Features
+## 🚀 Features
 
-- Real-time GPIO pin control through a web interface
-- Support for multiple pin modes:
-  - GPIO (Input/Output)
-  - PWM (on supported pins)
-  - I2C (pins 2, 3)
-  - SPI (pins 9, 10, 11)
-  - UART (pins 14, 15)
-- Real-time updates using WebSocket
-- Development mode with GPIO simulation for testing
+- **Complete GPIO Control**
+  - GPIO Input/Output
+  - Hardware & Software PWM
+  - I2C (6 buses)
+  - SPI (Multiple buses)
+  - UART (5 ports)
+  - PCM Audio
 
-## Installation
+- **Advanced Pin Configuration**
+  - Drive strength (2mA to 16mA)
+  - Slew rate control
+  - Hysteresis settings
+  - Edge detection
+  - Pin naming and descriptions
 
-1. Install Git on your Raspberry Pi:
-   ```bash
-   sudo apt-get update
-   sudo apt-get install -y git
-   ```
+- **Enterprise Security**
+  - User authentication
+  - Role-based access control
+  - API key support
+  - Comprehensive audit logging
+  - Secure password hashing
 
-2. Clone the repository:
+- **System Monitoring**
+  - Real-time temperature tracking
+  - CPU usage monitoring
+  - Memory utilization
+  - Power management
+  - Voltage readings
+  - Clock speeds
+  - Throttling status
+
+## 📋 Requirements
+
+- Raspberry Pi 5 (recommended) or compatible model
+- Python 3.x
+- Node.js 18.x or later
+- npm or yarn
+- SQLite3
+
+## 🛠️ Installation
+
+1. **Clone the Repository**
    ```bash
    git clone https://github.com/yourusername/raspberry-gpio-controller.git
    cd raspberry-gpio-controller
    ```
 
-3. Make the installation script executable:
+2. **Backend Setup**
    ```bash
-   chmod +x install.sh
+   # Create virtual environment
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   
+   # Install dependencies
+   pip install -r requirements.txt
+   
+   # Start the backend server
+   python app.py
    ```
 
-4. Run the installation script:
+3. **Frontend Setup**
    ```bash
-   ./install.sh
+   cd frontend
+   npm install
+   npm start
    ```
 
-The script will:
-- Install all required dependencies
-- Set up Python virtual environment
-- Install and build the frontend
-- Create and start a systemd service
+## 🔐 First-Time Setup
 
-## Accessing the Application
+1. **Default Admin Account**
+   - Username: `admin`
+   - Password: `admin`
+   - **Important**: Change the password immediately after first login
 
-- Open a web browser on any device in your local network
-- Navigate to `http://<your-pi-ip>:5000`
-- The IP address will be shown after installation
+2. **Creating Additional Users**
+   - Log in as admin
+   - Navigate to User Management
+   - Click "Add User"
+   - Set username, password, and role
 
-## Usage
+## 📱 Using the Application
 
-1. **GPIO Control**:
-   - Select pin function (GPIO, PWM, I2C, etc.)
-   - Toggle between Input/Output modes
-   - Control pin states
-   - Configure pull-up/down resistors
+### Authentication
 
-2. **PWM Features**:
-   - Adjust frequency (1-10000 Hz)
-   - Control duty cycle (0-100%)
+1. **Login**
+   - Navigate to http://your-pi-ip:3000
+   - Enter your credentials
+   - The system will provide a JWT token for subsequent requests
 
-## Service Management
+2. **API Key Access**
+   - Generate API keys in user settings
+   - Use keys for programmatic access
+   - Include in Authorization header: `Bearer your-api-key`
 
-- Check status: `sudo systemctl status gpio-controller`
-- View logs: `sudo journalctl -u gpio-controller`
-- Restart: `sudo systemctl restart gpio-controller`
+### GPIO Control
 
-## License
+1. **Basic Pin Control**
+   - Select a pin from the grid
+   - Choose pin mode (Input/Output)
+   - For output pins:
+     - Toggle HIGH/LOW state
+     - Set PWM values if applicable
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+2. **Advanced Pin Settings**
+   - Click "Advanced Settings" on any pin
+   - Configure:
+     - Drive strength
+     - Slew rate
+     - Hysteresis
+     - Edge detection
 
-Copyright (c) 2024 Stephanus (woodmurderedhat)
+3. **Pin Presets**
+   - Save current configuration as preset
+   - Load presets for quick setup
+   - Share presets with team members
 
-This is free and open-source software. You are free to use, modify, and distribute this software under the terms of the MIT License.
+### System Monitoring
+
+1. **Dashboard**
+   - Real-time system metrics
+   - Temperature graphs
+   - CPU/Memory usage
+   - Power consumption
+
+2. **Alerts**
+   - Set up alert thresholds
+   - Receive notifications for:
+     - High temperature
+     - Voltage issues
+     - System throttling
+
+### Audit Logging
+
+1. **View Logs**
+   - Access audit logs from menu
+   - Filter by:
+     - User
+     - Action type
+     - Time range
+     - Pin number
+
+2. **Export Logs**
+   - Download as CSV
+   - Filter before export
+   - Automatic daily backups
+
+## 🔧 Advanced Configuration
+
+### Environment Variables
+```bash
+JWT_SECRET_KEY=your-secret-key
+FLASK_ENV=production
+CORS_ORIGIN=http://your-frontend-url
+```
+
+### Custom Pin Definitions
+```python
+PIN_DEFINITIONS = {
+    "GPIO18": {
+        "name": "LED Control",
+        "description": "Main status LED"
+    }
+}
+```
+
+## 🛡️ Security Best Practices
+
+1. **Change Default Credentials**
+   - Modify admin password immediately
+   - Use strong passwords
+   - Rotate API keys regularly
+
+2. **Network Security**
+   - Run behind reverse proxy
+   - Enable HTTPS
+   - Restrict to local network
+   - Use VPN for remote access
+
+3. **Access Control**
+   - Create specific user roles
+   - Limit admin accounts
+   - Regular access audits
+
+## 🔍 Troubleshooting
+
+### Common Issues
+
+1. **Permission Errors**
+   ```bash
+   # Add user to gpio group
+   sudo usermod -a -G gpio $USER
+   ```
+
+2. **Connection Issues**
+   - Check if backend is running
+   - Verify correct IP/port
+   - Check firewall settings
+
+3. **Database Issues**
+   ```bash
+   # Reset database
+   rm instance/gpio_controller.db
+   python app.py  # Will recreate database
+   ```
+
+## 📚 API Documentation
+
+### REST Endpoints
+
+```
+GET  /api/pins            # List all pins
+POST /api/pins/<pin>      # Control pin
+GET  /api/system/info     # System information
+POST /api/presets         # Save pin preset
+```
+
+### WebSocket Events
+
+```javascript
+socket.on('pin_state_change', data => {
+    // Handle pin state changes
+});
+
+socket.on('system_metrics', data => {
+    // Handle system metric updates
+});
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🆘 Support
+
+- Create GitHub issue
+- Email: support@example.com
+- Documentation: https://docs.example.com
