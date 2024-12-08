@@ -1,276 +1,506 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Container,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Switch,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  AppBar,
-  Toolbar,
-  Box,
-  Slider,
-  Paper,
-  Alert
+  AppBar, Toolbar, Typography, Container, Grid, Card, CardContent,
+  Switch, FormControl, Select, MenuItem, Slider, TextField,
+  IconButton, Box, Paper, Chip, Tooltip, LinearProgress, Accordion, AccordionSummary, AccordionDetails, ExpandMore, InputLabel
 } from '@mui/material';
-import axios from 'axios';
-import io from 'socket.io-client';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { styled } from '@mui/system';
+import {
+  PowerSettingsNew, Memory, Speed, Settings,
+  DeviceThermostat, Memory as MemoryIcon
+} from '@mui/icons-material';
+import { io } from 'socket.io-client';
 
-const API_URL = 'http://localhost:5000';
-const socket = io(API_URL);
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#2196f3',
+    },
+    secondary: {
+      main: '#f50057',
+    },
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
+  },
+});
 
-const PIN_FUNCTIONS = {
-  PWM: [12, 13, 18, 19],
-  I2C: [2, 3],
-  SPI: [7, 8, 9, 10, 11],
-  UART: [14, 15]
-};
+const StyledCard = styled(Card)(({ theme }) => ({
+  height: '100%',
+  display: 'flex',
+  flexDirection: 'column',
+  transition: 'transform 0.2s',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+  },
+}));
+
+const StatusChip = styled(Chip)(({ theme, status }) => ({
+  backgroundColor: status ? '#4caf50' : '#f44336',
+  color: '#fff',
+  marginLeft: theme.spacing(1),
+}));
 
 function App() {
   const [pins, setPins] = useState({});
-  const [sshStatus, setSshStatus] = useState(null);
+  const [systemInfo, setSystemInfo] = useState({
+    temperature: 0,
+    voltage: 0,
+    memory: { total: '0', used: '0', free: '0' },
+    cpu_usage: 0,
+    is_pi: false
+  });
+  const [pinDefinitions, setPinDefinitions] = useState({
+    GPIO: [],
+    PWM: [],
+    I2C: {},
+    SPI: {},
+    UART: {}
+  });
+  const [powerInfo, setPowerInfo] = useState({
+    voltages: {},
+    clocks: {},
+    memory: {},
+    throttling: ''
+  });
+  const [configInfo, setConfigInfo] = useState({
+    boot_config: '',
+    active_overlays: '',
+    cpu_governor: ''
+  });
 
   useEffect(() => {
-    // Fetch initial pin states
-    fetchPins();
-    fetchSSHStatus();
-
-    // Listen for real-time updates
-    socket.on('pin_state_change', ({ pin, state }) => {
+    const socket = io('http://localhost:5000');
+    
+    socket.on('pin_state_change', (data) => {
       setPins(prev => ({
         ...prev,
-        [pin]: { ...prev[pin], state }
+        [data.pin]: {
+          ...prev[data.pin],
+          state: data.state,
+          last_trigger: data.last_trigger
+        }
       }));
     });
 
+    // Fetch initial data
+    const fetchData = async () => {
+      try {
+        const [pinsRes, systemRes, powerRes, configRes] = await Promise.all([
+          fetch('http://localhost:5000/api/pins'),
+          fetch('http://localhost:5000/api/system/info'),
+          fetch('http://localhost:5000/api/system/power'),
+          fetch('http://localhost:5000/api/system/config')
+        ]);
+
+        const [pinsData, systemData, powerData, configData] = await Promise.all([
+          pinsRes.json(),
+          systemRes.json(),
+          powerRes.json(),
+          configRes.json()
+        ]);
+
+        setPins(pinsData.pins);
+        setPinDefinitions(pinsData.definitions);
+        setSystemInfo(systemData);
+        setPowerInfo(powerData);
+        setConfigInfo(configData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+
+    // Poll for updates every 5 seconds
+    const interval = setInterval(fetchData, 5000);
+
     return () => {
-      socket.off('pin_state_change');
+      socket.disconnect();
+      clearInterval(interval);
     };
   }, []);
 
-  const fetchSSHStatus = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/ssh/status`);
-      setSshStatus(response.data);
-    } catch (error) {
-      console.error('Error fetching SSH status:', error);
-    }
+  const handlePinToggle = (pinNumber) => {
+    const newState = !pins[pinNumber].state;
+    fetch(`http://localhost:5000/api/pins/${pinNumber}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: newState ? 'HIGH' : 'LOW' })
+    });
   };
 
-  const fetchPins = async () => {
-    try {
-      const response = await axios.get(`${API_URL}/api/pins`);
-      setPins(response.data);
-    } catch (error) {
-      console.error('Error fetching pins:', error);
-    }
+  const handlePinFunction = (pinNumber, newFunction) => {
+    fetch(`http://localhost:5000/api/pins/${pinNumber}/function`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ function: newFunction })
+    });
   };
 
-  const handlePinToggle = async (pinNumber) => {
-    try {
-      const newState = !pins[pinNumber].state;
-      await axios.post(`${API_URL}/api/pins/${pinNumber}`, {
-        action: newState ? 'HIGH' : 'LOW'
-      });
-    } catch (error) {
-      console.error('Error toggling pin:', error);
-    }
+  const handlePinMode = (pinNumber, newMode) => {
+    fetch(`http://localhost:5000/api/pins/${pinNumber}/mode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: newMode })
+    });
   };
 
-  const handleModeChange = async (pinNumber, mode) => {
-    try {
-      await axios.post(`${API_URL}/api/pins/${pinNumber}/mode`, { mode });
-      setPins(prev => ({
-        ...prev,
-        [pinNumber]: { ...prev[pinNumber], mode }
-      }));
-    } catch (error) {
-      console.error('Error changing pin mode:', error);
-    }
+  const handlePWMChange = (pinNumber, type, value) => {
+    fetch(`http://localhost:5000/api/pins/${pinNumber}/pwm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ [type]: value })
+    });
   };
 
-  const handleFunctionChange = async (pinNumber, newFunction) => {
-    try {
-      await axios.post(`${API_URL}/api/pins/${pinNumber}/function`, {
-        function: newFunction
-      });
-      setPins(prev => ({
-        ...prev,
-        [pinNumber]: { ...prev[pinNumber], function: newFunction }
-      }));
-    } catch (error) {
-      console.error('Error changing pin function:', error);
-    }
+  const handleEdgeDetect = (pinNumber, edge) => {
+    fetch(`http://localhost:5000/api/pins/${pinNumber}/edge`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ edge })
+    });
   };
 
-  const handlePWMChange = async (pinNumber, type, value) => {
-    try {
-      await axios.post(`${API_URL}/api/pins/${pinNumber}/pwm`, {
-        [type]: value
-      });
-      setPins(prev => ({
-        ...prev,
-        [pinNumber]: { ...prev[pinNumber], [`pwm_${type}`]: value }
-      }));
-    } catch (error) {
-      console.error('Error setting PWM:', error);
-    }
+  const handlePinConfig = (pinNumber, config) => {
+    fetch(`http://localhost:5000/api/pins/${pinNumber}/config`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(config)
+    });
   };
 
-  const handlePullChange = async (pinNumber, pull) => {
-    try {
-      await axios.post(`${API_URL}/api/pins/${pinNumber}/pull`, { pull });
-      setPins(prev => ({
-        ...prev,
-        [pinNumber]: { ...prev[pinNumber], pull_updown: pull }
-      }));
-    } catch (error) {
-      console.error('Error setting pull-up/down:', error);
-    }
+  const handleAdvancedSettings = (pinNumber, settings) => {
+    fetch(`http://localhost:5000/api/pins/${pinNumber}/advanced`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings)
+    });
   };
 
   return (
-    <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Raspberry Pi GPIO Controller
-          </Typography>
-        </Toolbar>
-      </AppBar>
-      
-      {sshStatus && (
-        <Paper sx={{ p: 2, m: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            SSH Connection Details
-          </Typography>
-          <Alert severity="info">
-            Connect via SSH using: ssh pi@{sshStatus.address}
-            <br />
-            Hostname: {sshStatus.hostname}
-          </Alert>
-        </Paper>
-      )}
+    <ThemeProvider theme={darkTheme}>
+      <Box sx={{ flexGrow: 1, minHeight: '100vh', bgcolor: 'background.default' }}>
+        <AppBar position="static">
+          <Toolbar>
+            <Memory sx={{ mr: 2 }} />
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Raspberry Pi GPIO Controller
+            </Typography>
+            <StatusChip
+              label={systemInfo.is_pi ? 'Connected to Pi' : 'Development Mode'}
+              status={systemInfo.is_pi}
+            />
+          </Toolbar>
+        </AppBar>
 
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Grid container spacing={3}>
-          {Object.entries(pins).map(([pinNumber, pinData]) => (
-            <Grid item xs={12} sm={6} md={4} key={pinNumber}>
-              <Card>
+        <Container maxWidth="xl" sx={{ mt: 4 }}>
+          {/* System Info Cards */}
+          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <Grid item xs={12} md={3}>
+              <StyledCard>
                 <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    GPIO {pinNumber}
-                  </Typography>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <FormControl fullWidth>
-                        <InputLabel>Function</InputLabel>
-                        <Select
-                          value={pinData.function}
-                          label="Function"
-                          onChange={(e) => handleFunctionChange(parseInt(pinNumber), e.target.value)}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <DeviceThermostat color="primary" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Temperature</Typography>
+                  </Box>
+                  <Typography variant="h4">{systemInfo.temperature}°C</Typography>
+                </CardContent>
+              </StyledCard>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <StyledCard>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Speed color="primary" sx={{ mr: 1 }} />
+                    <Typography variant="h6">CPU Usage</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography variant="h4" sx={{ mr: 2 }}>
+                      {systemInfo.cpu_usage}%
+                    </Typography>
+                    <LinearProgress
+                      variant="determinate"
+                      value={systemInfo.cpu_usage}
+                      sx={{ flexGrow: 1 }}
+                    />
+                  </Box>
+                </CardContent>
+              </StyledCard>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <StyledCard>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <MemoryIcon color="primary" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Memory</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography variant="h4" sx={{ mr: 2 }}>
+                      {systemInfo.memory.used}/{systemInfo.memory.total}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </StyledCard>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <StyledCard>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Settings color="primary" sx={{ mr: 1 }} />
+                    <Typography variant="h6">Core Voltage</Typography>
+                  </Box>
+                  <Typography variant="h4">{systemInfo.voltage}V</Typography>
+                </CardContent>
+              </StyledCard>
+            </Grid>
+          </Grid>
+
+          {/* System Monitoring Section */}
+          <Paper sx={{ p: 3, mb: 4 }}>
+            <Typography variant="h5" gutterBottom>System Status</Typography>
+            <Grid container spacing={3}>
+              {/* Power Information */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" color="primary">Power Status</Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle2">Core Voltage</Typography>
+                        <Typography>{powerInfo.voltages.core || 'N/A'}</Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle2">ARM Clock</Typography>
+                        <Typography>
+                          {powerInfo.clocks.arm ? 
+                            `${(parseInt(powerInfo.clocks.arm.split('=')[1]) / 1000000).toFixed(0)} MHz` : 
+                            'N/A'}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle2">GPU Memory</Typography>
+                        <Typography>{powerInfo.memory.gpu || 'N/A'}</Typography>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Typography variant="subtitle2">Throttling Status</Typography>
+                        <Chip 
+                          label={powerInfo.throttling ? 'Active' : 'Normal'}
+                          color={powerInfo.throttling ? 'error' : 'success'}
+                          size="small"
+                        />
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              {/* Configuration Information */}
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" color="primary">System Configuration</Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle2">CPU Governor</Typography>
+                        <Typography>{configInfo.cpu_governor || 'N/A'}</Typography>
+                      </Grid>
+                      <Grid item xs={12}>
+                        <Typography variant="subtitle2">Active Overlays</Typography>
+                        <Typography 
+                          sx={{ 
+                            maxHeight: 100, 
+                            overflowY: 'auto',
+                            whiteSpace: 'pre-wrap'
+                          }}
                         >
-                          <MenuItem value="GPIO">GPIO</MenuItem>
-                          {PIN_FUNCTIONS.PWM.includes(parseInt(pinNumber)) && 
-                            <MenuItem value="PWM">PWM</MenuItem>
-                          }
-                          {PIN_FUNCTIONS.I2C.includes(parseInt(pinNumber)) && 
-                            <MenuItem value="I2C">I2C</MenuItem>
-                          }
-                          {PIN_FUNCTIONS.SPI.includes(parseInt(pinNumber)) && 
-                            <MenuItem value="SPI">SPI</MenuItem>
-                          }
-                          {PIN_FUNCTIONS.UART.includes(parseInt(pinNumber)) && 
-                            <MenuItem value="UART">UART</MenuItem>
-                          }
+                          {configInfo.active_overlays || 'None'}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* GPIO Pins Grid */}
+          <Grid container spacing={3}>
+            {Object.entries(pins).map(([pinNumber, pin]) => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={pinNumber}>
+                <StyledCard>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                      <Typography variant="h6">
+                        {pin.name || `GPIO ${pinNumber}`}
+                      </Typography>
+                      <IconButton
+                        color={pin.state ? 'primary' : 'default'}
+                        onClick={() => handlePinToggle(parseInt(pinNumber))}
+                        disabled={pin.mode === 'IN' || pin.function !== 'GPIO'}
+                      >
+                        <PowerSettingsNew />
+                      </IconButton>
+                    </Box>
+
+                    <TextField
+                      size="small"
+                      label="Description"
+                      value={pin.description}
+                      onChange={(e) => handlePinConfig(parseInt(pinNumber), { description: e.target.value })}
+                      fullWidth
+                      sx={{ mb: 2 }}
+                    />
+
+                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                      <Select
+                        value={pin.function}
+                        onChange={(e) => handlePinFunction(parseInt(pinNumber), e.target.value)}
+                      >
+                        <MenuItem value="GPIO">GPIO</MenuItem>
+                        {pinDefinitions.PWM.includes(parseInt(pinNumber)) && (
+                          <MenuItem value="PWM">PWM</MenuItem>
+                        )}
+                        {(pinDefinitions.I2C.SDA === parseInt(pinNumber) || 
+                          pinDefinitions.I2C.SCL === parseInt(pinNumber)) && (
+                          <MenuItem value="I2C">I2C</MenuItem>
+                        )}
+                        {Object.values(pinDefinitions.SPI.SPI0).includes(parseInt(pinNumber)) && (
+                          <MenuItem value="SPI">SPI</MenuItem>
+                        )}
+                        {(pinDefinitions.UART.TXD === parseInt(pinNumber) || 
+                          pinDefinitions.UART.RXD === parseInt(pinNumber)) && (
+                          <MenuItem value="UART">UART</MenuItem>
+                        )}
+                      </Select>
+                    </FormControl>
+
+                    {pin.function === 'GPIO' && (
+                      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                        <Select
+                          value={pin.mode}
+                          onChange={(e) => handlePinMode(parseInt(pinNumber), e.target.value)}
+                        >
+                          <MenuItem value="IN">Input</MenuItem>
+                          <MenuItem value="OUT">Output</MenuItem>
                         </Select>
                       </FormControl>
-                    </Grid>
+                    )}
 
-                    {pinData.function === 'GPIO' && (
+                    {pin.function === 'PWM' && (
                       <>
-                        <Grid item xs={6}>
-                          <FormControl fullWidth>
-                            <InputLabel>Mode</InputLabel>
-                            <Select
-                              value={pinData.mode}
-                              label="Mode"
-                              onChange={(e) => handleModeChange(parseInt(pinNumber), e.target.value)}
-                            >
-                              <MenuItem value="IN">Input</MenuItem>
-                              <MenuItem value="OUT">Output</MenuItem>
-                            </Select>
-                          </FormControl>
-                        </Grid>
-                        <Grid item xs={6}>
-                          <Typography component="div">
-                            State: {pinData.state ? 'HIGH' : 'LOW'}
+                        <Typography gutterBottom>Frequency (Hz)</Typography>
+                        <Slider
+                          value={pin.pwm_frequency}
+                          onChange={(e, value) => handlePWMChange(parseInt(pinNumber), 'frequency', value)}
+                          min={1}
+                          max={10000}
+                          valueLabelDisplay="auto"
+                        />
+                        <Typography gutterBottom>Duty Cycle (%)</Typography>
+                        <Slider
+                          value={pin.pwm_duty_cycle}
+                          onChange={(e, value) => handlePWMChange(parseInt(pinNumber), 'duty_cycle', value)}
+                          min={0}
+                          max={100}
+                          valueLabelDisplay="auto"
+                        />
+                      </>
+                    )}
+
+                    {pin.mode === 'IN' && (
+                      <FormControl fullWidth size="small">
+                        <Select
+                          value={pin.edge_detect}
+                          onChange={(e) => handleEdgeDetect(parseInt(pinNumber), e.target.value)}
+                        >
+                          <MenuItem value="NONE">No Edge Detection</MenuItem>
+                          <MenuItem value="RISING">Rising Edge</MenuItem>
+                          <MenuItem value="FALLING">Falling Edge</MenuItem>
+                          <MenuItem value="BOTH">Both Edges</MenuItem>
+                        </Select>
+                      </FormControl>
+                    )}
+
+                    {pin.last_trigger && (
+                      <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+                        Last Trigger: {new Date(pin.last_trigger * 1000).toLocaleTimeString()}
+                      </Typography>
+                    )}
+
+                    {/* Advanced Pin Settings */}
+                    <Accordion sx={{ mt: 2 }}>
+                      <AccordionSummary expandIcon={<ExpandMore />}>
+                        <Typography>Advanced Settings</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                          <InputLabel>Drive Strength</InputLabel>
+                          <Select
+                            value={pin.drive_strength}
+                            label="Drive Strength"
+                            onChange={(e) => handleAdvancedSettings(parseInt(pinNumber), { 
+                              drive_strength: e.target.value 
+                            })}
+                          >
+                            {['2mA', '4mA', '8mA', '12mA', '16mA'].map(strength => (
+                              <MenuItem key={strength} value={strength}>{strength}</MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+
+                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                          <InputLabel>Slew Rate</InputLabel>
+                          <Select
+                            value={pin.slew_rate}
+                            label="Slew Rate"
+                            onChange={(e) => handleAdvancedSettings(parseInt(pinNumber), { 
+                              slew_rate: e.target.value 
+                            })}
+                          >
+                            <MenuItem value="FAST">Fast</MenuItem>
+                            <MenuItem value="SLOW">Slow</MenuItem>
+                          </Select>
+                        </FormControl>
+
+                        <FormControlLabel
+                          control={
                             <Switch
-                              checked={pinData.state}
-                              onChange={() => handlePinToggle(parseInt(pinNumber))}
-                              disabled={pinData.mode === 'IN'}
+                              checked={pin.hysteresis}
+                              onChange={(e) => handleAdvancedSettings(parseInt(pinNumber), { 
+                                hysteresis: e.target.checked 
+                              })}
                             />
-                          </Typography>
-                        </Grid>
-                        {pinData.mode === 'IN' && (
-                          <Grid item xs={12}>
-                            <FormControl fullWidth>
-                              <InputLabel>Pull Up/Down</InputLabel>
-                              <Select
-                                value={pinData.pull_updown}
-                                label="Pull Up/Down"
-                                onChange={(e) => handlePullChange(parseInt(pinNumber), e.target.value)}
-                              >
-                                <MenuItem value="NONE">None</MenuItem>
-                                <MenuItem value="UP">Pull Up</MenuItem>
-                                <MenuItem value="DOWN">Pull Down</MenuItem>
-                              </Select>
-                            </FormControl>
-                          </Grid>
-                        )}
-                      </>
-                    )}
+                          }
+                          label="Hysteresis"
+                        />
 
-                    {pinData.function === 'PWM' && (
-                      <>
-                        <Grid item xs={12}>
-                          <Typography gutterBottom>
-                            Frequency: {pinData.pwm_frequency} Hz
-                          </Typography>
-                          <Slider
-                            value={pinData.pwm_frequency}
-                            onChange={(_, value) => handlePWMChange(parseInt(pinNumber), 'frequency', value)}
-                            min={1}
-                            max={10000}
-                            step={1}
+                        {pin.function === 'PWM' && (
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={pin.software_pwm}
+                                onChange={(e) => handleAdvancedSettings(parseInt(pinNumber), { 
+                                  software_pwm: e.target.checked 
+                                })}
+                              />
+                            }
+                            label="Software PWM"
                           />
-                        </Grid>
-                        <Grid item xs={12}>
-                          <Typography gutterBottom>
-                            Duty Cycle: {pinData.pwm_duty_cycle}%
-                          </Typography>
-                          <Slider
-                            value={pinData.pwm_duty_cycle}
-                            onChange={(_, value) => handlePWMChange(parseInt(pinNumber), 'duty_cycle', value)}
-                            min={0}
-                            max={100}
-                            step={1}
-                          />
-                        </Grid>
-                      </>
-                    )}
-                  </Grid>
-                </CardContent>
-              </Card>
-            </Grid>
-          ))}
-        </Grid>
-      </Container>
-    </Box>
+                        )}
+                      </AccordionDetails>
+                    </Accordion>
+                  </CardContent>
+                </StyledCard>
+              </Grid>
+            ))}
+          </Grid>
+        </Container>
+      </Box>
+    </ThemeProvider>
   );
 }
 

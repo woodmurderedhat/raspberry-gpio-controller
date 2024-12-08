@@ -3,76 +3,110 @@
 # Exit on error
 set -e
 
-echo "Starting Raspberry Pi GPIO Controller Installation..."
+echo "🚀 Installing Raspberry Pi GPIO Controller Pro..."
 
-# Get the absolute path of the script directory
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Check if running on Raspberry Pi
+if [ -f /etc/rpi-issue ]; then
+    IS_PI=1
+    echo "✅ Running on Raspberry Pi"
+else
+    IS_PI=0
+    echo "⚠️ Not running on Raspberry Pi - some features will be simulated"
+fi
 
-# Update system packages
-echo "Updating system packages..."
-sudo apt-get update
-sudo apt-get upgrade -y
+# Install system dependencies
+echo "📦 Installing system dependencies..."
+if [ $IS_PI -eq 1 ]; then
+    sudo apt-get update
+    sudo apt-get install -y python3-pip python3-venv nodejs npm sqlite3 libsqlite3-dev
+    sudo usermod -a -G gpio $USER
+else
+    # Assuming Windows/Mac has Python, Node.js, and SQLite installed
+    echo "ℹ️ Please ensure Python 3.x, Node.js, and SQLite are installed on your system"
+fi
 
-# Install Python and pip if not already installed
-echo "Installing Python and pip..."
-sudo apt-get install -y python3 python3-pip python3-dev python3-rpi.gpio
-
-# Install Node.js and npm
-echo "Installing Node.js and npm..."
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Create virtual environment
-echo "Setting up Python virtual environment..."
-cd "$SCRIPT_DIR"
-python3 -m pip install virtualenv
-python3 -m virtualenv venv
+# Create and activate virtual environment
+echo "🐍 Setting up Python virtual environment..."
+python3 -m venv venv
 source venv/bin/activate
 
 # Install Python dependencies
-echo "Installing Python packages..."
+echo "📚 Installing Python packages..."
+pip install --upgrade pip
 pip install -r requirements.txt
 
-# Install frontend dependencies and build
-echo "Installing frontend dependencies..."
-cd "$SCRIPT_DIR/frontend"
+# Install frontend dependencies
+echo "🎨 Setting up frontend..."
+cd frontend
 npm install
 npm run build
-cd "$SCRIPT_DIR"
+cd ..
 
-# Create systemd service
-echo "Setting up systemd service..."
-sudo tee /etc/systemd/system/gpio-controller.service > /dev/null << EOL
+# Create environment file if it doesn't exist
+if [ ! -f .env ]; then
+    echo "🔐 Creating environment file..."
+    echo "JWT_SECRET_KEY=$(openssl rand -hex 32)" > .env
+    echo "FLASK_ENV=production" >> .env
+    echo "CORS_ORIGIN=http://localhost:3000" >> .env
+fi
+
+# Initialize database
+echo "🗄️ Setting up database..."
+python3 -c "
+from app import app, db
+with app.app_context():
+    db.create_all()
+"
+
+# Create systemd service file (only on Raspberry Pi)
+if [ $IS_PI -eq 1 ]; then
+    echo "🔧 Setting up system service..."
+    sudo tee /etc/systemd/system/gpio-controller.service > /dev/null << EOL
 [Unit]
-Description=Raspberry Pi GPIO Controller
+Description=Raspberry Pi GPIO Controller Pro
 After=network.target
 
 [Service]
-Type=simple
 User=$USER
-WorkingDirectory=$SCRIPT_DIR
-Environment=PATH=$SCRIPT_DIR/venv/bin:$PATH
-ExecStart=$SCRIPT_DIR/venv/bin/python app.py
+WorkingDirectory=$(pwd)
+Environment=PATH=$(pwd)/venv/bin:$PATH
+ExecStart=$(pwd)/venv/bin/python app.py
 Restart=always
 
 [Install]
 WantedBy=multi-user.target
 EOL
 
-# Enable and start the service
-sudo systemctl daemon-reload
-sudo systemctl enable gpio-controller
-sudo systemctl start gpio-controller
+    # Start and enable the service
+    sudo systemctl daemon-reload
+    sudo systemctl enable gpio-controller
+    sudo systemctl start gpio-controller
+    
+    echo "✅ Service installed and started"
+    echo "📝 View logs with: sudo journalctl -u gpio-controller"
+else
+    echo "🚀 Starting development server..."
+    python app.py &
+    cd frontend && npm start
+fi
 
-# Get local IP
-LOCAL_IP=$(hostname -I | awk '{print $1}')
+# Get IP address
+IP_ADDRESS=$(hostname -I | cut -d' ' -f1)
 
-echo "Installation complete!"
-echo "Your GPIO Controller is now running!"
-echo ""
-echo "Access the controller at: http://$LOCAL_IP:5000"
-echo ""
-echo "Useful commands:"
-echo "- Check status: sudo systemctl status gpio-controller"
-echo "- View logs: sudo journalctl -u gpio-controller"
-echo "- Restart: sudo systemctl restart gpio-controller"
+echo "
+✨ Installation complete! ✨
+
+📱 Access the application:
+   Frontend: http://$IP_ADDRESS:3000
+   Backend API: http://$IP_ADDRESS:5000
+
+🔐 Default admin credentials:
+   Username: admin
+   Password: admin
+
+⚠️ IMPORTANT: Change the admin password immediately after first login!
+
+📚 Documentation: https://github.com/yourusername/raspberry-gpio-controller
+
+Need help? Create an issue on GitHub or contact support@example.com
+"
