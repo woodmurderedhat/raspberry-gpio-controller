@@ -17,12 +17,10 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
   - Slew rate control
   - Hysteresis settings
   - Edge detection
-  - Pin naming and descriptions
 
 - **Enterprise Security**
-  - User authentication
-  - Role-based access control
-  - API key support
+  - User authentication with JWT
+  - Role-based access control (Admin/User)
   - Comprehensive audit logging
   - Secure password hashing
 
@@ -82,7 +80,7 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
    - Log in as admin
    - Navigate to User Management
    - Click "Add User"
-   - Set username, password, and role
+   - Set username, password, and role (Admin/User)
 
 ## 📱 Using the Application
 
@@ -93,62 +91,47 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
    - Enter your credentials
    - The system will provide a JWT token for subsequent requests
 
-2. **API Key Access**
-   - Generate API keys in user settings
-   - Use keys for programmatic access
-   - Include in Authorization header: `Bearer your-api-key`
-
 ### GPIO Control
 
 1. **Basic Pin Control**
    - Select a pin from the grid
    - Choose pin mode (Input/Output)
    - For output pins:
-     - Toggle HIGH/LOW state
-     - Set PWM values if applicable
+     Toggle HIGH/LOW state
+     Set PWM values if applicable
 
 2. **Advanced Pin Settings**
    - Click "Advanced Settings" on any pin
    - Configure:
-     - Drive strength
-     - Slew rate
-     - Hysteresis
-     - Edge detection
+     Drive strength
+     Slew rate
+     Hysteresis
+     Edge detection
 
 3. **Pin Presets**
    - Save current configuration as preset
    - Load presets for quick setup
-   - Share presets with team members
 
 ### System Monitoring
 
 1. **Dashboard**
    - Real-time system metrics
-   - Temperature graphs
+   - Temperature readings
    - CPU/Memory usage
    - Power consumption
-
-2. **Alerts**
-   - Set up alert thresholds
-   - Receive notifications for:
-     - High temperature
-     - Voltage issues
-     - System throttling
+   - Clock speeds
+   - Throttling status
+   - Voltage readings
 
 ### Audit Logging
 
 1. **View Logs**
    - Access audit logs from menu
    - Filter by:
-     - User
-     - Action type
-     - Time range
-     - Pin number
-
-2. **Export Logs**
-   - Download as CSV
-   - Filter before export
-   - Automatic daily backups
+     User
+     Action type
+     Pin number
+     Timestamp
 
 ## 🔧 Advanced Configuration
 
@@ -159,22 +142,11 @@ FLASK_ENV=production
 CORS_ORIGIN=http://your-frontend-url
 ```
 
-### Custom Pin Definitions
-```python
-PIN_DEFINITIONS = {
-    "GPIO18": {
-        "name": "LED Control",
-        "description": "Main status LED"
-    }
-}
-```
-
 ## 🛡️ Security Best Practices
 
 1. **Change Default Credentials**
    - Modify admin password immediately
    - Use strong passwords
-   - Rotate API keys regularly
 
 2. **Network Security**
    - Run behind reverse proxy
@@ -183,7 +155,7 @@ PIN_DEFINITIONS = {
    - Use VPN for remote access
 
 3. **Access Control**
-   - Create specific user roles
+   - Use appropriate user roles (Admin/User)
    - Limit admin accounts
    - Regular access audits
 
@@ -199,46 +171,8 @@ PIN_DEFINITIONS = {
 
 2. **Connection Issues**
    - Check if backend is running
-   - Verify correct IP/port
-   - Check firewall settings
-
-3. **Database Issues**
-   ```bash
-   # Reset database
-   rm instance/gpio_controller.db
-   python app.py  # Will recreate database
-   ```
-
-## 📚 API Documentation
-
-### REST Endpoints
-
-```
-GET  /api/pins            # List all pins
-POST /api/pins/<pin>      # Control pin
-GET  /api/system/info     # System information
-POST /api/presets         # Save pin preset
-```
-
-### WebSocket Events
-
-```javascript
-socket.on('pin_state_change', data => {
-    // Handle pin state changes
-});
-
-socket.on('system_metrics', data => {
-    // Handle system metric updates
-});
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create Pull Request
+   - Verify frontend URL in CORS settings
+   - Ensure correct IP and port configuration
 
 ## 📄 License
 
@@ -246,6 +180,8 @@ MIT License - see LICENSE file for details
 
 ## 🆘 Support
 
+For issues and feature requests, please open an issue in the GitHub repository.
+=======
 - Create GitHub issue
 
 - Documentation: [Raspberry GPIO Controller](https://woodmurderedhat.github.io/raspberry-gpio-controller/)
