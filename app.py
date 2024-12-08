@@ -10,6 +10,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 import subprocess
+import logging
 
 app = Flask(__name__)
 CORS(app)
@@ -521,8 +522,9 @@ def get_config():
         
         return jsonify(config_data)
     except Exception as e:
+        logging.error(f'Failed to get configuration: {str(e)}')
         return jsonify({
-            'error': f'Failed to get configuration: {str(e)}'
+            'error': 'Failed to get configuration due to an internal error.'
         }), 500
 
 def cleanup():
