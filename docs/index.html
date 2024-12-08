@@ -147,6 +147,7 @@
             <li><a href="#api">API Reference</a></li>
             <li><a href="#troubleshooting">Troubleshooting</a></li>
             <li><a href="#usage-examples">Usage Examples</a></li>
+            <li><a href="#web-interface">Using the Web Interface</a></li>
         </ul>
     </nav>
 
@@ -747,6 +748,200 @@ POST /api/pins/12/pwm
 {
     "duty_cycle": 75
 }</code></pre>
+            </div>
+        </section>
+
+        <section id="web-interface">
+            <h2>Using the Web Interface</h2>
+
+            <div class="feature-card">
+                <h4>Getting Started</h4>
+                <ol>
+                    <li>Open your web browser and navigate to <code>http://your-pi-ip:3000</code></li>
+                    <li>Log in with the default credentials:
+                        <ul>
+                            <li>Username: <code>admin</code></li>
+                            <li>Password: <code>admin</code></li>
+                        </ul>
+                    </li>
+                    <li>You'll be prompted to change your password on first login</li>
+                </ol>
+            </div>
+
+            <div class="feature-card">
+                <h4>Dashboard Overview</h4>
+                <p>The main dashboard is divided into three sections:</p>
+                <ul>
+                    <li><strong>GPIO Pin Grid:</strong> Visual representation of all GPIO pins</li>
+                    <li><strong>System Monitor:</strong> Real-time system metrics</li>
+                    <li><strong>Control Panel:</strong> Pin configuration and presets</li>
+                </ul>
+            </div>
+
+            <div class="feature-card">
+                <h4>User Management</h4>
+                <ol>
+                    <li><strong>Creating New Users:</strong>
+                        <ul>
+                            <li>Click the "Settings" icon in the top-right corner</li>
+                            <li>Select "User Management"</li>
+                            <li>Click "Add User"</li>
+                            <li>Fill in:
+                                <ul>
+                                    <li>Username</li>
+                                    <li>Password</li>
+                                    <li>Role (User or Admin)</li>
+                                </ul>
+                            </li>
+                            <li>Click "Create User"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Managing Users:</strong>
+                        <ul>
+                            <li>View all users in the User Management panel</li>
+                            <li>Edit user details with the pencil icon</li>
+                            <li>Delete users with the trash icon</li>
+                            <li>Reset passwords using the key icon</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="feature-card">
+                <h4>Controlling GPIO Pins</h4>
+                <ol>
+                    <li><strong>Basic Pin Control:</strong>
+                        <ul>
+                            <li>Click any pin in the GPIO grid</li>
+                            <li>Select pin mode (Input/Output)</li>
+                            <li>For output pins:
+                                <ul>
+                                    <li>Toggle the switch to set HIGH/LOW</li>
+                                    <li>Use the slider for PWM control</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li><strong>Advanced Settings:</strong>
+                        <ul>
+                            <li>Click the gear icon on any pin</li>
+                            <li>Configure:
+                                <ul>
+                                    <li>Drive strength</li>
+                                    <li>Pull up/down resistors</li>
+                                    <li>Edge detection</li>
+                                    <li>Slew rate</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="feature-card">
+                <h4>Creating and Using Presets</h4>
+                <ol>
+                    <li><strong>Save a Preset:</strong>
+                        <ul>
+                            <li>Configure pins as desired</li>
+                            <li>Click "Save Preset" in the Control Panel</li>
+                            <li>Enter a name for your preset</li>
+                            <li>Choose pins to include</li>
+                            <li>Click "Save"</li>
+                        </ul>
+                    </li>
+                    <li><strong>Load a Preset:</strong>
+                        <ul>
+                            <li>Open the "Presets" dropdown</li>
+                            <li>Select your saved preset</li>
+                            <li>Click "Load" to apply settings</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="feature-card">
+                <h4>System Monitoring</h4>
+                <ol>
+                    <li><strong>View System Stats:</strong>
+                        <ul>
+                            <li>Temperature: Current CPU/GPU temps</li>
+                            <li>CPU Usage: Real-time processor load</li>
+                            <li>Memory: RAM usage and availability</li>
+                            <li>Voltage: Power supply readings</li>
+                        </ul>
+                    </li>
+                    <li><strong>Configure Alerts:</strong>
+                        <ul>
+                            <li>Click "Alert Settings"</li>
+                            <li>Set thresholds for:
+                                <ul>
+                                    <li>Temperature warnings</li>
+                                    <li>CPU load alerts</li>
+                                    <li>Memory usage warnings</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="feature-card">
+                <h4>Viewing Logs</h4>
+                <ol>
+                    <li>Click "Logs" in the main menu</li>
+                    <li>Filter logs by:
+                        <ul>
+                            <li>Time period</li>
+                            <li>User</li>
+                            <li>Action type</li>
+                            <li>Pin number</li>
+                        </ul>
+                    </li>
+                    <li>Export logs:
+                        <ul>
+                            <li>Click "Export"</li>
+                            <li>Choose date range</li>
+                            <li>Select CSV or JSON format</li>
+                        </ul>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="feature-card">
+                <h4>Keyboard Shortcuts</h4>
+                <table>
+                    <tr>
+                        <th>Shortcut</th>
+                        <th>Action</th>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl + S</code></td>
+                        <td>Save current preset</td>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl + L</code></td>
+                        <td>Load preset</td>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl + M</code></td>
+                        <td>Toggle monitoring panel</td>
+                    </tr>
+                    <tr>
+                        <td><code>Ctrl + /</code></td>
+                        <td>Show keyboard shortcuts</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="warning">
+                <strong>Important Notes:</strong>
+                <ul>
+                    <li>Always verify pin configurations before applying power to connected devices</li>
+                    <li>Some features require admin privileges</li>
+                    <li>Pin states are preserved across sessions</li>
+                    <li>System automatically logs out after 30 minutes of inactivity</li>
+                </ul>
             </div>
         </section>
     </div>
