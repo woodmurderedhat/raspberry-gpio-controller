@@ -97,16 +97,16 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
    - Select a pin from the grid
    - Choose pin mode (Input/Output)
    - For output pins:
-     - Toggle HIGH/LOW state
-     - Set PWM values if applicable
+     Toggle HIGH/LOW state
+     Set PWM values if applicable
 
 2. **Advanced Pin Settings**
    - Click "Advanced Settings" on any pin
    - Configure:
-     - Drive strength
-     - Slew rate
-     - Hysteresis
-     - Edge detection
+     Drive strength
+     Slew rate
+     Hysteresis
+     Edge detection
 
 3. **Pin Presets**
    - Save current configuration as preset
@@ -128,10 +128,10 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
 1. **View Logs**
    - Access audit logs from menu
    - Filter by:
-     - User
-     - Action type
-     - Pin number
-     - Timestamp
+     User
+     Action type
+     Pin number
+     Timestamp
 
 ## 🔧 Advanced Configuration
 
@@ -181,3 +181,7 @@ MIT License - see LICENSE file for details
 ## 🆘 Support
 
 For issues and feature requests, please open an issue in the GitHub repository.
+=======
+- Create GitHub issue
+
+- Documentation: [Raspberry GPIO Controller](https://woodmurderedhat.github.io/raspberry-gpio-controller/)
