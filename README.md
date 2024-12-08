@@ -67,3 +67,11 @@ The script will:
 - Check status: `sudo systemctl status gpio-controller`
 - View logs: `sudo journalctl -u gpio-controller`
 - Restart: `sudo systemctl restart gpio-controller`
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+Copyright (c) 2024 Stephanus (woodmurderedhat)
+
+This is free and open-source software. You are free to use, modify, and distribute this software under the terms of the MIT License.
