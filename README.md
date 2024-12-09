@@ -45,7 +45,7 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/raspberry-gpio-controller.git
+   git clone https://github.com/woodmurderedhat/raspberry-gpio-controller.git
    cd raspberry-gpio-controller
    ```
 
