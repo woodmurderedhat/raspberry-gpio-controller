@@ -9,6 +9,8 @@ from flask_jwt_extended import JWTManager, create_access_token, jwt_required, ge
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
+import subprocess
+import logging
 
 app = Flask(__name__)
 CORS(app)
@@ -390,7 +392,7 @@ def set_pin_advanced(pin_number):
                 drive_strength = data['drive_strength']
                 if drive_strength not in ['2mA', '4mA', '8mA', '12mA', '16mA']:
                     return jsonify({'error': 'Invalid drive strength'}), 400
-                os.system(f'raspi-gpio set {pin_number} dl {drive_strength[:-2]}')
+                subprocess.run(['raspi-gpio', 'set', str(pin_number), 'dl', drive_strength[:-2]], check=True)
                 pin_states[pin_number]['drive_strength'] = drive_strength
 
             # Set slew rate (FAST/SLOW)
@@ -398,13 +400,13 @@ def set_pin_advanced(pin_number):
                 slew_rate = data['slew_rate']
                 if slew_rate not in ['FAST', 'SLOW']:
                     return jsonify({'error': 'Invalid slew rate'}), 400
-                os.system(f'raspi-gpio set {pin_number} sl {"1" if slew_rate == "FAST" else "0"}')
+                subprocess.run(['raspi-gpio', 'set', str(pin_number), 'sl', '1' if slew_rate == 'FAST' else '0'], check=True)
                 pin_states[pin_number]['slew_rate'] = slew_rate
 
             # Set hysteresis (ON/OFF)
             if 'hysteresis' in data:
                 hysteresis = bool(data['hysteresis'])
-                os.system(f'raspi-gpio set {pin_number} hy {"1" if hysteresis else "0"}')
+                subprocess.run(['raspi-gpio', 'set', str(pin_number), 'hy', '1' if hysteresis else '0'], check=True)
                 pin_states[pin_number]['hysteresis'] = hysteresis
 
         except Exception as e:
@@ -520,8 +522,9 @@ def get_config():
         
         return jsonify(config_data)
     except Exception as e:
+        logging.error(f'Failed to get configuration: {str(e)}')
         return jsonify({
-            'error': f'Failed to get configuration: {str(e)}'
+            'error': 'Failed to get configuration due to an internal error.'
         }), 500
 
 def cleanup():
