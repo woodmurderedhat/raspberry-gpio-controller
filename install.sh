@@ -106,7 +106,7 @@ echo "
 
 ⚠️ IMPORTANT: Change the admin password immediately after first login!
 
-📚 Documentation: https://github.com/yourusername/raspberry-gpio-controller
+📚 Documentation: https://github.com/woodmurderedhat/raspberry-gpio-controller
 
 Need help? Create an issue on GitHub or contact support@example.com
 "

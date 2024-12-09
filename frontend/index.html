@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi GPIO Controller</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>GPIO Controller</h1>
+            <div id="connection-status">Disconnected</div>
+        </header>
+
+        <div class="main-content">
+            <div class="gpio-grid">
+                <!-- GPIO pins will be dynamically added here -->
+            </div>
+
+            <div class="controls-panel">
+                <div class="status-card">
+                    <h2>System Status</h2>
+                    <div id="system-stats">
+                        <p>CPU Temperature: <span id="cpu-temp">--</span>°C</p>
+                        <p>Memory Usage: <span id="memory-usage">--</span>%</p>
+                    </div>
+                </div>
+
+                <div class="gpio-controls">
+                    <h2>Quick Controls</h2>
+                    <button id="all-on">All On</button>
+                    <button id="all-off">All Off</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification" class="notification"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.min.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
