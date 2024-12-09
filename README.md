@@ -47,9 +47,13 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
    ```bash
    git clone https://github.com/woodmurderedhat/raspberry-gpio-controller.git
    cd raspberry-gpio-controller
+   chmod +x install.sh
+   ./install.sh
    ```
+The install script installs the backend and frontend.
+But if you want to manually do it, here's a guide:
 
-2. **Backend Setup**
+A. **Backend Setup**
    ```bash
    # Create virtual environment
    python -m venv venv
@@ -62,7 +66,7 @@ A professional-grade web application for controlling and monitoring Raspberry Pi
    python app.py
    ```
 
-3. **Frontend Setup**
+B. **Frontend Setup**
    ```bash
    cd frontend
    npm install
