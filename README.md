@@ -1,3 +1,5 @@
+currently broken
+
 # Raspberry Pi GPIO Controller Pro
 
 A professional-grade web application for controlling and monitoring Raspberry Pi GPIO pins with enterprise features.
